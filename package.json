@@ -1,0 +1,29 @@
+{
+  "name": "exact-school-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/loader.js",
+  "scripts": {
+    "dev": "nodemon",
+    "production": "pm2 start src/loader.js --name exact-school-backend"
+  },
+  "keywords": [],
+  "author": "Israel Fernandes",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "express-query-int": "^1.0.1",
+    "express-validator": "^6.12.1",
+    "loadash": "^1.0.0",
+    "mongoose": "^4.13.19",
+    "mongoose-paginate": "^5.0.3",
+    "node-restful": "^0.2.5",
+    "pm2": "^5.1.0",
+    "save-dev": "0.0.1-security"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  }
+}
