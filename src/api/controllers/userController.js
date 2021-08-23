@@ -7,6 +7,8 @@ const User = require('../models/users')
 
 const bcrypt = require('bcrypt')
 
+const NotFoundError = require('../common/errors/NotFound')
+
 exports.create = function (req, res, next) {
 
   const salt = bcrypt.genSaltSync(10)
@@ -27,9 +29,9 @@ exports.create = function (req, res, next) {
   user.save(function (err, userCreated) {
     if (err) {
       res.status(500).send({ errors: [err] })
-      next()
+      next(err)
     }
-    res.send({ success: true, res: 'Usuário cadastrado com sucesso!' })
+    res.send({ success: true, res: 'Usuário cadastrado com sucesso!', status: 200 })
   })
 }
 
@@ -52,78 +54,77 @@ exports.getAll = function (req, res, next) {
     }
   }
 
-  console.log(filters)
-
   User.find(filters, function (err, users) {
     if (err) {
       res.status(500).json({ errors: [err] })
-      next()
+      next(err)
     }
     res.send(users)
   }).limit(req.query.limit).skip(req.query.skip)
 }
 
 exports.getById = function (req, res, next) {
-  BillingCycle.findById(req.params.id, function (err, billingCycle) {
-    if (err) res.status(500).json({ errors: [err] })
-    if (!billingCycle) {
+
+  User.findById(req.params.id, function (err, user) {
+    if (err) {
+      res.status(500).json({ errors: [err] })
+      next(err)
+    }
+    if (!user) {
       const error = new NotFoundError()
       error.httpStatusCode = 404
-      res.status(error.httpStatusCode).json(`Ciclo de pagamento não encontrado, erro: ${error.httpStatusCode}`)
+      res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
       return next(error)
     }
 
-    res.send(billingCycle)
+    res.send(user)
   })
 }
 
 
 exports.update = function (req, res, next) {
-  BillingCycle.findByIdAndUpdate(req.params.id, { $set: req.body }, function (err, billingCycle) {
-    if (err) res.status(500).json({ errors: [error] })
-    if (!billingCycle) res.send('Clico de pagamento não existe')
-    BillingCycle.findById(req.params.id, function (err, billingCycle) {
-      res.send(billingCycle)
-    })
-    // res.send('Ciclo de pagamento atualizado com sucesso!')
+
+  User.findByIdAndUpdate(req.params.id, { $set: req.body }, function (err, user) {
+    if (err) {
+      res.status(500).json({ errors: [err] })
+      next(err)
+    }
+    if (!user) {
+      const error = new NotFoundError()
+      error.httpStatusCode = 404
+      res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
+      return next(error)
+    }
+    res.send({ success: true, res: 'Usuário atualizado com sucesso!', status: 200 })
   })
 }
 
 exports.delete = function (req, res, next) {
-  BillingCycle.findByIdAndRemove(req.params.id, function (err, billingCycle) {
-    if (err) res.status(500).json({ errors: [error] })
-    if (!billingCycle) res.send('Ciclo de pagamento não existe')
-    res.send('Ciclo de pagamento apagado com sucesso!')
+
+  User.findByIdAndRemove(req.params.id, function (err, user) {
+    if (err) {
+      res.status(500).json({ errors: [err] })
+      next(err)
+    }
+    if (!user) {
+      const error = new NotFoundError()
+      error.httpStatusCode = 404
+      res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
+      return next(error)
+    }
+    res.send({ success: true, res: 'Usuário excluído com sucesso!', status: 200 })
   })
 }
 
 exports.count = function (req, res, next) {
-  BillingCycle.count({}, function (err, value) {
-    if (err) res.status(500).json({ errors: [error] })
-    if (!value) res.send('Não existem ciclos de pagamento para serem contabilizados')
+
+  User.count({}, function (err, value) {
+    if (err) {
+      res.status(500).json({ errors: [err] })
+      next(err)
+    }
+    if (!value) res.json({ success: false, res: 'Não existem usuários para serem contabilizados', status: 404 })
     res.json({ value })
   })
 }
 
-exports.summary = function (req, res, next) {
-  BillingCycle.aggregate({
-    $project: { credit: { $sum: "$credits.value" }, debt: { $sum: "$debts.value" } }
-  }, {
-    $group: {
-      _id: null,
-      credit: { $sum: "$credit" }, // $credit referência que saiu do $project | credit novo atributo
-      debt: { $sum: "$debt" }
-    }
-  }, {
-    $project: {
-      _id: 0,
-      credit: 1,
-      debt: 1
-    }
-  }, (err, result) => {
-    if (err) {
-      res.status(500).json({ errors: [error] })
-    }
-    res.json(result[0] || { credit: 0, debt: 0 })
-  })
-}

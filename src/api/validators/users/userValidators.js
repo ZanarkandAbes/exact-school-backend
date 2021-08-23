@@ -11,7 +11,7 @@ exports.userValidators = [
             reject(new Error('Server Error'))
           }
           if (!!user) {
-            reject(new Error('Usuário já existe no banco de dados!'))
+            reject(new Error(`O usuário já existe no banco de dados! Status: ${409}`))
           }
           resolve(true)
 
