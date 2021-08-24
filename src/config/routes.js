@@ -23,15 +23,15 @@ router.get('/badges/:id', badgeController.getById)
 router.put('/badges/:id/update', badgeController.update)
 router.delete('/badges/:id/delete', badgeController.delete)
 
-// const billingCycleController = require('../api/controllers/billingCycleController')
+const topicController = require('../api/controllers/topicController')
+const topicValidators = require('../api/validators/topics/topicValidators')
 
-// router.get('/', billingCycleController.getAll)
-// router.get('/count', billingCycleController.count)
-// router.get('/summary', billingCycleController.summary)
-// router.post('/create', billingCycleController.create)
-// router.get('/:id', billingCycleController.getById)
-// router.put('/:id/update', billingCycleController.update)
-// router.delete('/:id/delete', billingCycleController.delete)
+router.post('/topics/create', topicValidators.topicValidators, topicController.create)
+router.get('/topics/', topicController.getAll)
+router.get('/topics/count', topicController.count)
+router.get('/topics/:id', topicController.getById)
+router.put('/topics/:id/update', topicController.update)
+router.delete('/topics/:id/delete', topicController.delete)
 
 // Tal controller e tais rotas: (padrão)
 
