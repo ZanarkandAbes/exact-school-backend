@@ -7,7 +7,7 @@ const Topic = require('../models/topics')
 
 const NotFoundError = require('../common/errors/NotFound')
 
-exports.create = function (req, res, next) {
+exports.create = async function (req, res, next) {
 
   let topic = new Topic({
     userId: req.body.userId,
@@ -20,16 +20,12 @@ exports.create = function (req, res, next) {
     updatedAt: new Date().toISOString()
   })
 
-  topic.save(function (err, topicCreated) {
-    if (err) {
-      res.status(500).send({ errors: [err] })
-      next()
-    }
-    res.send({ success: true, res: 'Tópico cadastrado com sucesso!', status: 200 })
-  })
+  const topicCreated = await topic.save()
+
+  if (topicCreated) res.send({ success: true, res: 'Tópico cadastrado com sucesso!', status: 200 })
 }
 
-exports.getAll = function (req, res, next) {
+exports.getAll = async function (req, res, next) {
 
   let filters = {}, topicTypeToFilter, titleToFilter
 
@@ -47,77 +43,60 @@ exports.getAll = function (req, res, next) {
     }
   }
 
-  Topic.find(filters, function (err, topics) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next()
-    }
-    res.send(topics)
-  }).limit(req.query.limit).skip(req.query.skip)
+  const topics = await Topic.find(filters).limit(req.query.limit).skip(req.query.skip)
+
+  res.send(topics || [])
 }
 
-exports.getById = function (req, res, next) {
+exports.getById = async function (req, res, next) {
 
-  Topic.findById(req.params.id, function (err, topic) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next()
-    }
-    if (!topic) {
-      const error = new NotFoundError()
-      error.httpStatusCode = 404
-      res.status(error.httpStatusCode).json({ success: false, res: 'Tópico não encontrado', status: error.httpStatusCode })
-      return next(error)
-    }
+  const topic = await Topic.findById(req.params.id)
 
-    res.send(topic)
-  })
+  if (!topic) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Tópico não encontrado', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  res.send(topic)
 }
 
 
-exports.update = function (req, res, next) {
+exports.update = async function (req, res, next) {
 
-  Topic.findByIdAndUpdate(req.params.id, { $set: req.body }, function (err, topic) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next()
-    }
-    if (!topic) {
-      const error = new NotFoundError()
-      error.httpStatusCode = 404
-      res.status(error.httpStatusCode).json({ success: false, res: 'Tópico não encontrado', status: error.httpStatusCode })
-      return next(error)
-    }
-    res.send({ success: true, res: 'Tópico atualizado com sucesso!', status: 200 })
-  })
+  const topic = await Topic.findByIdAndUpdate(req.params.id, { $set: req.body })
+
+  if (!topic) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Tópico não encontrado', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (topic) res.send({ success: true, res: 'Tópico atualizado com sucesso!', status: 200 })
 }
 
-exports.delete = function (req, res, next) {
+exports.delete = async function (req, res, next) {
 
-  Topic.findByIdAndRemove(req.params.id, function (err, topic) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next()
-    }
-    if (!topic) {
-      const error = new NotFoundError()
-      error.httpStatusCode = 404
-      res.status(error.httpStatusCode).json({ success: false, res: 'Tópico não encontrado', status: error.httpStatusCode })
-      return next(error)
-    }
-    res.send({ success: true, res: 'Tópico excluído com sucesso!', status: 200 })
-  })
+  const topic = await Topic.findByIdAndRemove(req.params.id)
+
+  if (!topic) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Tópico não encontrado', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (topic) res.send({ success: true, res: 'Tópico excluído com sucesso!', status: 200 })
 }
 
-exports.count = function (req, res, next) {
+exports.count = async function (req, res, next) {
 
-  Topic.count({}, function (err, value) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next()
-    }
-    if (!value) res.json({ success: false, res: 'Não existem tópicos para serem contabilizados', status: 404 })
-    res.json({ value })
-  })
+  const value = await Topic.count({})
+
+  if (!value) res.json({ success: false, res: 'Não existem tópicos para serem contabilizados', status: 404 })
+
+  if (value) res.json({ value })
 }
 

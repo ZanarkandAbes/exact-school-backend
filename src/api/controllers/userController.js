@@ -9,7 +9,7 @@ const bcrypt = require('bcrypt')
 
 const NotFoundError = require('../common/errors/NotFound')
 
-exports.create = function (req, res, next) {
+exports.create = async function (req, res, next) {
 
   const salt = bcrypt.genSaltSync(10)
   const encryptedHashPassword = bcrypt.hashSync(req.body.password, salt)
@@ -26,17 +26,12 @@ exports.create = function (req, res, next) {
     updatedAt: new Date().toISOString()
   })
 
-  user.save(function (err, userCreated) {
-    if (err) {
-      res.status(500).send({ errors: [err] })
-      next(err)
-    }
-    res.send({ success: true, res: 'Usuário cadastrado com sucesso!', status: 200 })
-  })
+  const userCreated = await user.save()
+
+  if (userCreated) res.send({ success: true, res: 'Usuário cadastrado com sucesso!', status: 200 })
 }
 
-
-exports.getAll = function (req, res, next) {
+exports.getAll = async function (req, res, next) {
 
   let filters = {}, emailToFilter, nameToFilter
 
@@ -54,77 +49,60 @@ exports.getAll = function (req, res, next) {
     }
   }
 
-  User.find(filters, function (err, users) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next(err)
-    }
-    res.send(users)
-  }).limit(req.query.limit).skip(req.query.skip)
+  const users = await User.find(filters).limit(req.query.limit).skip(req.query.skip)
+
+  res.send(users || [])
 }
 
-exports.getById = function (req, res, next) {
+exports.getById = async function (req, res, next) {
 
-  User.findById(req.params.id, function (err, user) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next(err)
-    }
-    if (!user) {
-      const error = new NotFoundError()
-      error.httpStatusCode = 404
-      res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
-      return next(error)
-    }
+  const user = await User.findById(req.params.id)
 
-    res.send(user)
-  })
+  if (!user) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (user) res.send(user)
 }
 
 
-exports.update = function (req, res, next) {
+exports.update = async function (req, res, next) {
 
-  User.findByIdAndUpdate(req.params.id, { $set: req.body }, function (err, user) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next(err)
-    }
-    if (!user) {
-      const error = new NotFoundError()
-      error.httpStatusCode = 404
-      res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
-      return next(error)
-    }
-    res.send({ success: true, res: 'Usuário atualizado com sucesso!', status: 200 })
-  })
+  const user = await User.findByIdAndUpdate(req.params.id, { $set: req.body })
+
+  if (!user) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (user) res.send({ success: true, res: 'Usuário atualizado com sucesso!', status: 200 })
 }
 
-exports.delete = function (req, res, next) {
+exports.delete = async function (req, res, next) {
 
-  User.findByIdAndRemove(req.params.id, function (err, user) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next(err)
-    }
-    if (!user) {
-      const error = new NotFoundError()
-      error.httpStatusCode = 404
-      res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
-      return next(error)
-    }
-    res.send({ success: true, res: 'Usuário excluído com sucesso!', status: 200 })
-  })
+  const user = await User.findByIdAndRemove(req.params.id)
+
+  if (!user) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (user) res.send({ success: true, res: 'Usuário excluído com sucesso!', status: 200 })
 }
 
-exports.count = function (req, res, next) {
+exports.count = async function (req, res, next) {
 
-  User.count({}, function (err, value) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next(err)
-    }
-    if (!value) res.json({ success: false, res: 'Não existem usuários para serem contabilizados', status: 404 })
-    res.json({ value })
-  })
+  const value = await User.count({})
+
+  if (!value) res.json({ success: false, res: 'Não existem usuários para serem contabilizados', status: 404 })
+
+  if (value) res.json({ value })
 }
 

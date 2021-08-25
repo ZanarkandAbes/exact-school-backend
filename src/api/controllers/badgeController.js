@@ -7,7 +7,7 @@ const Badge = require('../models/badges')
 
 const NotFoundError = require('../common/errors/NotFound')
 
-exports.create = function (req, res, next) {
+exports.create = async function (req, res, next) {
 
   let badge = new Badge({
     name: req.body.name,
@@ -17,17 +17,12 @@ exports.create = function (req, res, next) {
     updatedAt: new Date().toISOString()
   })
 
-  badge.save(function (err, badgeCreated) {
-    if (err) {
-      res.status(500).send({ errors: [err] })
-      next()
-    }
-    res.send({ success: true, res: 'Medalha cadastrada com sucesso!', status: 200 })
-  })
+  const badgeCreated = await badge.save()
+
+  if (badgeCreated) res.send({ success: true, res: 'Medalha cadastrada com sucesso!', status: 200 })
 }
 
-
-exports.getAll = function (req, res, next) {
+exports.getAll = async function (req, res, next) {
 
   let filters = {}, badgeTypeToFilter, nameToFilter
 
@@ -45,77 +40,60 @@ exports.getAll = function (req, res, next) {
     }
   }
 
-  Badge.find(filters, function (err, badges) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next()
-    }
-    res.send(badges)
-  }).limit(req.query.limit).skip(req.query.skip)
+  const badges = await Badge.find(filters).limit(req.query.limit).skip(req.query.skip)
+  
+  res.send(badges || [])
 }
 
-exports.getById = function (req, res, next) {
+exports.getById = async function (req, res, next) {
 
-  Badge.findById(req.params.id, function (err, badge) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next()
-    }
-    if (!badge) {
-      const error = new NotFoundError()
-      error.httpStatusCode = 404
-      res.status(error.httpStatusCode).json({ success: false, res: 'Medalha não encontrada', status: error.httpStatusCode })
-      return next(error)
-    }
+  const badge = await Badge.findById(req.params.id)
 
-    res.send(badge)
-  })
+  if (!badge) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Medalha não encontrada', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (badge) res.send(badge)
 }
 
 
-exports.update = function (req, res, next) {
+exports.update = async function (req, res, next) {
 
-  Badge.findByIdAndUpdate(req.params.id, { $set: req.body }, function (err, badge) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next()
-    }
-    if (!badge) {
-      const error = new NotFoundError()
-      error.httpStatusCode = 404
-      res.status(error.httpStatusCode).json({ success: false, res: 'Medalha não encontrada', status: error.httpStatusCode })
-      return next(error)
-    }
-    res.send({ success: true, res: 'Medalha atualizada com sucesso!', status: 200 })
-  })
+  const badge = await Badge.findByIdAndUpdate(req.params.id, { $set: req.body })
+  
+  if (!badge) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Medalha não encontrada', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (badge) res.send({ success: true, res: 'Medalha atualizada com sucesso!', status: 200 })
 }
 
-exports.delete = function (req, res, next) {
+exports.delete = async function (req, res, next) {
 
-  Badge.findByIdAndRemove(req.params.id, function (err, badge) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next()
-    }
-    if (!badge) {
-      const error = new NotFoundError()
-      error.httpStatusCode = 404
-      res.status(error.httpStatusCode).json({ success: false, res: 'Medalha não encontrada', status: error.httpStatusCode })
-      return next(error)
-    }
-    res.send({ success: true, res: 'Medalha excluída com sucesso!', status: 200 })
-  })
+  const badge = await Badge.findByIdAndRemove(req.params.id)
+
+  if (!badge) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Medalha não encontrada', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (badge) res.send({ success: true, res: 'Medalha excluída com sucesso!', status: 200 })
 }
 
-exports.count = function (req, res, next) {
+exports.count = async function (req, res, next) {
 
-  Badge.count({}, function (err, value) {
-    if (err) {
-      res.status(500).json({ errors: [err] })
-      next()
-    }
-    if (!value) res.json({ success: false, res: 'Não existem medalhas para serem contabilizadas', status: 404 })
-    res.json({ value })
-  })
+  const value = await Badge.count({})
+
+  if (!value) res.json({ success: false, res: 'Não existem medalhas para serem contabilizadas', status: 404 })
+  
+  if (value) res.json({ value })
 }
 
