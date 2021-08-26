@@ -33,6 +33,16 @@ router.get('/topics/:id', topicController.getById)
 router.put('/topics/:id/update', topicController.update)
 router.delete('/topics/:id/delete', topicController.delete)
 
+const classController = require('../api/controllers/classController')
+const classValidators = require('../api/validators/classes/classValidators')
+
+router.post('/classes/create', classValidators.classValidators, classController.create)
+router.get('/classes/', classController.getAll)
+router.get('/classes/count', classController.count)
+router.get('/classes/:id', classController.getById)
+router.put('/classes/:id/update', classController.update)
+router.delete('/classes/:id/delete', classController.delete)
+
 // Tal controller e tais rotas: (padrão)
 
 module.exports = router
