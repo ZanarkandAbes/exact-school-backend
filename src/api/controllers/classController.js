@@ -11,6 +11,7 @@ exports.create = async function (req, res, next) {
 
   let classToCreate = new Class({
     topicId: req.body.topicId,
+    userId: req.body.userId,
     title: req.body.title,
     videoUrl: req.body.videoUrl,
     classType: req.body.classType,

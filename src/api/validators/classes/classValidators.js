@@ -3,6 +3,7 @@ const validateYouTubeUrl = require('../../common/utils/validateYoutubeUrl')
 
 const Class = require('../../models/classes')
 const Topic = require('../../models/topics')
+const User = require('../../models/users')
 
 exports.classValidators = [
   check('topicId')
@@ -14,6 +15,21 @@ exports.classValidators = [
           }
           if (!topic && req.body.topicId !== '') {
             reject(new Error(`O tópico não existe no banco de dados! Status: ${404}`))
+          }
+          resolve(true)
+
+        })
+      })
+    }),
+  check('userId')
+    .custom((value, { req }) => {
+      return new Promise((resolve, reject) => {
+        User.findOne({ _id: req.body.userId }, function (err, user) {
+          if (err) {
+            reject(new Error('Server Error'))
+          }
+          if (!user) {
+            reject(new Error(`O usuário não existe no banco de dados! Status: ${404}`))
           }
           resolve(true)
 
