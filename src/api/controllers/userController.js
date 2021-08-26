@@ -6,8 +6,51 @@
 const User = require('../models/users')
 
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 const NotFoundError = require('../common/errors/NotFound')
+const UnanthorizedError = require('../common/errors/Unanthorized')
+
+exports.login = async function (req, res, next) {
+
+  const user = await User.findOne({ email: req.body.email })
+
+  console.log('user:', user.toJSON())
+
+  if (!user) {
+    const error = new UnanthorizedError()
+    error.httpStatusCode = 401
+    res.status(error.httpStatusCode).json({ success: false, res: 'Falha na autenticação', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  const comparePasswords = await bcrypt.compare(req.body.password, user.password)
+
+  console.log('comparePasswords:', comparePasswords)
+
+  if (comparePasswords) {
+    const token = jwt.sign({
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      birthDay: user.birthDay,
+      userType: user.userType,
+      badges: user.badges,
+      totalCoins: user.totalCoins
+    },
+      'JWT_SECRET',
+      {
+        expiresIn: '1h'
+      }
+    )
+
+    res.send({ token: token, success: true, res: 'Autenticado com sucesso!', status: 200 })
+  } else {
+    const error = new UnanthorizedError()
+    error.httpStatusCode = 401
+    res.status(error.httpStatusCode).json({ success: false, res: 'Falha na autenticação', status: error.httpStatusCode })
+  }
+}
 
 exports.create = async function (req, res, next) {
 

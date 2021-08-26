@@ -6,6 +6,8 @@ const router = express.Router()
 const userController = require('../api/controllers/userController')
 const userValidators = require('../api/validators/users/userValidators')
 
+router.post('/login', userController.login)
+
 router.post('/users/create', userValidators.userValidators, userController.create)
 router.get('/users/', userController.getAll)
 router.get('/users/count', userController.count)
