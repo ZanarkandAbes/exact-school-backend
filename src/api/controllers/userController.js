@@ -71,7 +71,11 @@ exports.getById = async function (req, res, next) {
 
 exports.update = async function (req, res, next) {
 
-  const user = await User.findByIdAndUpdate(req.params.id, { $set: req.body })
+  let body = req.body
+
+  body.updatedAt = new Date().toISOString()
+
+  const user = await User.findByIdAndUpdate(req.params.id, { $set: body })
 
   if (!user) {
     const error = new NotFoundError()

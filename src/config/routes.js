@@ -43,6 +43,16 @@ router.get('/classes/:id', classController.getById)
 router.put('/classes/:id/update', classController.update)
 router.delete('/classes/:id/delete', classController.delete)
 
+const quizController = require('../api/controllers/quizController')
+const quizValidators = require('../api/validators/quizzes/quizValidators')
+
+router.post('/quizzes/create', quizValidators.quizValidators, quizController.create)
+router.get('/quizzes/', quizController.getAll)
+router.get('/quizzes/count', quizController.count)
+router.get('/quizzes/:id', quizController.getById)
+router.put('/quizzes/:id/update', quizController.update)
+router.delete('/quizzes/:id/delete', quizController.delete)
+
 // Tal controller e tais rotas: (padrão)
 
 module.exports = router

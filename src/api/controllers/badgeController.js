@@ -62,7 +62,11 @@ exports.getById = async function (req, res, next) {
 
 exports.update = async function (req, res, next) {
 
-  const badge = await Badge.findByIdAndUpdate(req.params.id, { $set: req.body })
+  let body = req.body
+
+  body.updatedAt = new Date().toISOString()
+
+  const badge = await Badge.findByIdAndUpdate(req.params.id, { $set: body })
   
   if (!badge) {
     const error = new NotFoundError()
