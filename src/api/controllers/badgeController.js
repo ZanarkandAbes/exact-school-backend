@@ -1,8 +1,5 @@
 // C - CONTROLLER
 
-// as operações de manipulação estão dentro do Badge (pois ele é um modelo do mongoose que está no outro arquivo)
-// para validar senha bcrypt.compareSync(passwordToCompare, passwordOfDatabase) quando for logar e fazer autenticação
-
 const Badge = require('../models/badges')
 
 const NotFoundError = require('../common/errors/NotFound')
@@ -58,7 +55,6 @@ exports.getById = async function (req, res, next) {
 
   if (badge) res.send(badge)
 }
-
 
 exports.update = async function (req, res, next) {
 

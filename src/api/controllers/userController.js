@@ -1,9 +1,7 @@
 // C - CONTROLLER
 
-// as operações de manipulação estão dentro do User (pois ele é um modelo do mongoose que está no outro arquivo)
-// para validar senha bcrypt.compareSync(passwordToCompare, passwordOfDatabase) quando for logar e fazer autenticação
-
 const User = require('../models/users')
+const userTypesEnum = require('../common/enums/userTypes')
 
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -15,8 +13,6 @@ exports.login = async function (req, res, next) {
 
   const user = await User.findOne({ email: req.body.email })
 
-  console.log('user:', user.toJSON())
-
   if (!user) {
     const error = new UnanthorizedError()
     error.httpStatusCode = 401
@@ -25,8 +21,6 @@ exports.login = async function (req, res, next) {
   }
 
   const comparePasswords = await bcrypt.compare(req.body.password, user.password)
-
-  console.log('comparePasswords:', comparePasswords)
 
   if (comparePasswords) {
     const token = jwt.sign({
@@ -40,7 +34,7 @@ exports.login = async function (req, res, next) {
     },
       'JWT_SECRET',
       {
-        expiresIn: '1h'
+        expiresIn: '8h'
       }
     )
 
@@ -111,12 +105,18 @@ exports.getById = async function (req, res, next) {
   if (user) res.send(user)
 }
 
-
 exports.update = async function (req, res, next) {
 
   let body = req.body
 
   body.updatedAt = new Date().toISOString()
+
+  if (!(req.authUser.userType === userTypesEnum.ADMIN || req.authUser.id === req.params.id)){
+    const error = new UnanthorizedError()
+    error.httpStatusCode = 401
+    res.status(401).send({ sucess: false, res: 'Sem permissão', status: error.httpStatusCode })
+    return next(error)
+  }
 
   const user = await User.findByIdAndUpdate(req.params.id, { $set: body })
 

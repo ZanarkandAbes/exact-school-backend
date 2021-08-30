@@ -1,11 +1,10 @@
 // C - CONTROLLER
 
-// as operações de manipulação estão dentro do Quiz (pois ele é um modelo do mongoose que está no outro arquivo)
-// para validar senha bcrypt.compareSync(passwordToCompare, passwordOfDatabase) quando for logar e fazer autenticação
-
 const Quiz = require('../models/quizzes')
+const userTypesEnum = require('../common/enums/userTypes')
 
 const NotFoundError = require('../common/errors/NotFound')
+const UnanthorizedError = require('../common/errors/Unanthorized')
 
 exports.create = async function (req, res, next) {
 
@@ -60,12 +59,18 @@ exports.getById = async function (req, res, next) {
   if (quiz) res.send(quiz)
 }
 
-
 exports.update = async function (req, res, next) {
 
   let body = req.body
 
   body.updatedAt = new Date().toISOString()
+
+  if (!(req.authUser.userType === userTypesEnum.ADMIN || req.authUser.id === req.params.id)){
+    const error = new UnanthorizedError()
+    error.httpStatusCode = 401
+    res.status(401).send({ sucess: false, res: 'Sem permissão', status: error.httpStatusCode })
+    return next(error)
+  }
 
   const quiz = await Quiz.findByIdAndUpdate(req.params.id, { $set: body })
   
