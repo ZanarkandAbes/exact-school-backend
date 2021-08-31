@@ -24,6 +24,34 @@ exports.create = async function (req, res, next) {
   if (topicCreated) res.send({ success: true, res: 'Tópico cadastrado com sucesso!', status: 200 })
 }
 
+exports.createTopicAnswers = async function (req, res, next) {
+
+  let topic = await Topic.findById(req.params.id)
+
+  if (!topic) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Tópico não encontrado', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  let answer = { 
+    topicAnswerId: topic.topicAnswers.length + 1, 
+    userId: req.authUser.id,
+    answer: req.body.answer, 
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+
+  topic.topicAnswers.push(answer)
+
+  let body = topic
+
+  const topicResponse = await Topic.findByIdAndUpdate(req.params.id, { $set: body })
+  
+  if (topicResponse) res.send({ success: true, res: 'Resposta do tópico criada com sucesso!', status: 200 })
+}
+
 exports.getAll = async function (req, res, next) {
 
   let filters = {}, topicTypeToFilter, titleToFilter
@@ -84,6 +112,39 @@ exports.update = async function (req, res, next) {
   }
 
   if (topic) res.send({ success: true, res: 'Tópico atualizado com sucesso!', status: 200 })
+}
+
+exports.updateTopicAnswers = async function (req, res, next) {
+
+  let body = req.body
+
+  body.updatedAt = new Date().toISOString()
+
+  body.topicAnswers.map(topicAnswer => {
+    if ((topicAnswer.topicAnswerId === req.body.answerId) && (topicAnswer.userId === req.authUser.id)){
+      topicAnswer.answer = req.body.answer
+      topicAnswer.updatedAt = new Date().toISOString()
+    }
+  })
+
+  let topic = await Topic.findById(req.params.id)
+
+  topic.topicAnswers.splice(topic.topicAnswers.indexOf({ topicAnswerId: req.body.answerId }), 1)
+
+  topic.topicAnswers = [...topic.topicAnswers, ...body.topicAnswers]
+
+  body.topicAnswers = topic.topicAnswers
+
+  const topicResponse = await Topic.findByIdAndUpdate(req.params.id, { $set: body })
+
+  if (!topicResponse) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Tópico não encontrado', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (topicResponse) res.send({ success: true, res: 'Resposta do tópico atualizada com sucesso!', status: 200 })
 }
 
 exports.delete = async function (req, res, next) {

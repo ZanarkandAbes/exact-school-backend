@@ -31,10 +31,12 @@ const topicController = require('../api/controllers/topicController')
 const topicValidators = require('../api/middlewares/topics/topicValidators')
 
 router.post('/topics/create', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), topicValidators.topicValidators, topicController.create)
+router.post('/topics/:id/create-topic-answers', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), topicController.createTopicAnswers)
 router.get('/topics/', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), topicController.getAll)
 router.get('/topics/count', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), topicController.count)
 router.get('/topics/:id', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), topicController.getById)
 router.put('/topics/:id/update', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), topicController.update)
+router.put('/topics/:id/update-topic-answers', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), topicController.updateTopicAnswers)
 router.delete('/topics/:id/delete', userLogin([userTypesEnum.ADMIN]), topicController.delete)
 
 const classController = require('../api/controllers/classController')
