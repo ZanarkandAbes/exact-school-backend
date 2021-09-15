@@ -1,6 +1,7 @@
 // C - CONTROLLER
 
 const User = require('../models/users')
+const Badge = require('../models/badges')
 const userTypesEnum = require('../common/enums/userTypes')
 
 const bcrypt = require('bcrypt')
@@ -8,6 +9,8 @@ const jwt = require('jsonwebtoken')
 
 const NotFoundError = require('../common/errors/NotFound')
 const UnanthorizedError = require('../common/errors/Unanthorized')
+const InvalidOperationError = require('../common/errors/InvalidOperation')
+const ConflictError = require('../common/errors/Conflict')
 
 exports.login = async function (req, res, next) {
 
@@ -32,7 +35,7 @@ exports.login = async function (req, res, next) {
       badges: user.badges,
       totalCoins: user.totalCoins
     },
-      'JWT_SECRET',
+      process.env.JWT_SECRET,
       {
         expiresIn: '8h'
       }
@@ -66,6 +69,51 @@ exports.create = async function (req, res, next) {
   const userCreated = await user.save()
 
   if (userCreated) res.send({ success: true, res: 'Usuário cadastrado com sucesso!', status: 200 })
+}
+
+exports.createUserBadges = async function (req, res, next) {
+
+  const user = await User.findById(req.params.id)
+
+  if (!user) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  const badge = await Badge.findById(req.body.badgeId)
+
+  if (!badge) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Medalha não encontrada', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (!(user.totalCoins >= badge.price)) {
+    const error = new InvalidOperationError()
+    error.httpStatusCode = 400
+    res.status(error.httpStatusCode).json({ success: false, res: 'Dinheiro insuficiente para comprar a medalha', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (!!user.badges.find(badge => badge._id.toString() === req.body.badgeId)) {
+    const error = new ConflictError()
+    error.httpStatusCode = 409
+    res.status(error.httpStatusCode).json({ success: false, res: 'Essa medalha já pertence a esse usuário', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  user.badges.push(badge)
+
+  user.totalCoins = user.totalCoins - badge.price
+
+  let body = user
+
+  const userResponse = await User.findByIdAndUpdate(req.params.id, { $set: body })
+  
+  if (userResponse) res.send({ success: true, res: 'Medalha do usuário comprada com sucesso!', status: 200 })
 }
 
 exports.getAll = async function (req, res, next) {

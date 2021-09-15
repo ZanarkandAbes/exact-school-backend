@@ -11,6 +11,7 @@ const userLogin = require('../api/middlewares/users/userLogin')
 router.post('/login', userController.login)
 
 router.post('/users/create', userLogin([userTypesEnum.ADMIN]), userValidators.userValidators, userController.create)
+router.post('/users/:id/create-user-badges', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), userController.createUserBadges)
 router.get('/users/', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER]), userController.getAll)
 router.get('/users/count', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER]), userController.count)
 router.get('/users/:id', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), userController.getById)

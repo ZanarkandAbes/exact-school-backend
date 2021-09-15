@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const userLogin = (userPermissions) => (req, res, next) => {
 
   try {
-    const decode = jwt.verify(req.body.token, 'JWT_SECRET')
+    const decode = jwt.verify(req.body.token, process.env.JWT_SECRET)
     req.authUser = decode
 
     if (!(userPermissions.some(userPermission => userPermission === req.authUser.userType))){

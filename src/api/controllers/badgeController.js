@@ -1,8 +1,10 @@
 // C - CONTROLLER
 
 const Badge = require('../models/badges')
+const User = require('../models/users')
 
 const NotFoundError = require('../common/errors/NotFound')
+const InvalidOperationError = require('../common/errors/InvalidOperation')
 
 exports.create = async function (req, res, next) {
 
@@ -76,12 +78,28 @@ exports.update = async function (req, res, next) {
 
 exports.delete = async function (req, res, next) {
 
+  const user = await User.findById(req.body.userId)
+
+  if (!user) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
+    return next(error)
+  }
+
   const badge = await Badge.findByIdAndRemove(req.params.id)
 
   if (!badge) {
     const error = new NotFoundError()
     error.httpStatusCode = 404
     res.status(error.httpStatusCode).json({ success: false, res: 'Medalha não encontrada', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (!!user.badges.find(badge => badge._id.toString() === req.params.id)) {
+    const error = new InvalidOperationError()
+    error.httpStatusCode = 400
+    res.status(error.httpStatusCode).json({ success: false, res: 'Essa medalha pertence a um usuário', status: error.httpStatusCode })
     return next(error)
   }
 
