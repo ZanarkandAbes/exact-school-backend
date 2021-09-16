@@ -16,6 +16,7 @@ router.get('/users/', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER]), u
 router.get('/users/count', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER]), userController.count)
 router.get('/users/:id', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), userController.getById)
 router.put('/users/:id/update', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), userController.update)
+router.put('/users/:id/update-user-badges', userLogin([userTypesEnum.ADMIN]), userController.updateUserBadges)
 router.delete('/users/:id/delete', userLogin([userTypesEnum.ADMIN]), userController.delete)
 
 const badgeController = require('../api/controllers/badgeController')
@@ -44,6 +45,7 @@ const classController = require('../api/controllers/classController')
 const classValidators = require('../api/middlewares/classes/classValidators')
 
 router.post('/classes/create', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER]), classValidators.classValidators, classController.create)
+router.post('/classes/:id/create-class-quizzes', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER]), classController.createClassQuizzes)
 router.get('/classes/', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), classController.getAll)
 router.get('/classes/count', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), classController.count)
 router.get('/classes/:id', userLogin([userTypesEnum.ADMIN, userTypesEnum.TEACHER, userTypesEnum.STUDENT]), classController.getById)

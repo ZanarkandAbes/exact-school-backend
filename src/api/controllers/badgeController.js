@@ -87,23 +87,25 @@ exports.delete = async function (req, res, next) {
     return next(error)
   }
 
-  const badge = await Badge.findByIdAndRemove(req.params.id)
+  const badge = await Badge.findById(req.params.id)
 
-  if (!badge) {
-    const error = new NotFoundError()
-    error.httpStatusCode = 404
-    res.status(error.httpStatusCode).json({ success: false, res: 'Medalha não encontrada', status: error.httpStatusCode })
-    return next(error)
-  }
-
-  if (!!user.badges.find(badge => badge._id.toString() === req.params.id)) {
+  if ((!!user.badges.find(badge => badge._id.toString() === req.params.id)) && !!badge) {
     const error = new InvalidOperationError()
     error.httpStatusCode = 400
     res.status(error.httpStatusCode).json({ success: false, res: 'Essa medalha pertence a um usuário', status: error.httpStatusCode })
     return next(error)
   }
 
-  if (badge) res.send({ success: true, res: 'Medalha excluída com sucesso!', status: 200 })
+  const badgeDeleted = await Badge.findByIdAndRemove(req.params.id)
+
+  if (!badgeDeleted) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Medalha não encontrada', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  if (badgeDeleted) res.send({ success: true, res: 'Medalha excluída com sucesso!', status: 200 })
 }
 
 exports.count = async function (req, res, next) {

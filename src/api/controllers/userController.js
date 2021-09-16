@@ -178,6 +178,39 @@ exports.update = async function (req, res, next) {
   if (user) res.send({ success: true, res: 'Usuário atualizado com sucesso!', status: 200 })
 }
 
+exports.updateUserBadges = async function (req, res, next) {
+
+  let user = await User.findById(req.params.id)
+
+  if (!user) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Usuário não encontrado', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  const badgeFinded = user.badges.find(badge => badge._id.toString() === req.body.badgeId)
+
+  let userBadges = user.badges
+
+  if (!!badgeFinded) {
+    userBadges = userBadges.filter(badge => badge._id.toString() !== req.body.badgeId)
+  } else {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Medalha não encontrada com o usuário', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  user.badges = userBadges
+
+  let body = user
+
+  const userUpdated = await User.findByIdAndUpdate(req.params.id, { $set: body })
+
+  if (userUpdated) res.send({ success: true, res: 'Medalha(s) do usuário atualizada(s) com sucesso!', status: 200 })
+}
+
 exports.delete = async function (req, res, next) {
 
   const user = await User.findByIdAndRemove(req.params.id)

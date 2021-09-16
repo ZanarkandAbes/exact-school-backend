@@ -1,10 +1,12 @@
 // C - CONTROLLER
 
 const Quiz = require('../models/quizzes')
+const Class = require('../models/classes')
 const userTypesEnum = require('../common/enums/userTypes')
 
 const NotFoundError = require('../common/errors/NotFound')
 const UnanthorizedError = require('../common/errors/Unanthorized')
+const InvalidOperationError = require('../common/errors/InvalidOperation')
 
 exports.create = async function (req, res, next) {
 
@@ -86,16 +88,34 @@ exports.update = async function (req, res, next) {
 
 exports.delete = async function (req, res, next) {
 
-  const quiz = await Quiz.findByIdAndRemove(req.params.id)
+  const classToGet = await Class.findById(req.body.classId)
 
-  if (!quiz) {
+  if (!classToGet) {
+    const error = new NotFoundError()
+    error.httpStatusCode = 404
+    res.status(error.httpStatusCode).json({ success: false, res: 'Aula não encontrada', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  const quiz = await Quiz.findById(req.params.id)
+
+  if (!!(classToGet.quizzes.find(quiz => quiz._id.toString() === req.params.id)) && !!quiz) {
+    const error = new InvalidOperationError()
+    error.httpStatusCode = 400
+    res.status(error.httpStatusCode).json({ success: false, res: 'Essa pergunta pertence a uma aula', status: error.httpStatusCode })
+    return next(error)
+  }
+
+  const quizDeleted = await Quiz.findByIdAndRemove(req.params.id)
+
+  if (!quizDeleted) {
     const error = new NotFoundError()
     error.httpStatusCode = 404
     res.status(error.httpStatusCode).json({ success: false, res: 'Pergunta não encontrada', status: error.httpStatusCode })
     return next(error)
   }
 
-  if (quiz) res.send({ success: true, res: 'Pergunta excluída com sucesso!', status: 200 })
+  if (quizDeleted) res.send({ success: true, res: 'Pergunta excluída com sucesso!', status: 200 })
 }
 
 exports.count = async function (req, res, next) {

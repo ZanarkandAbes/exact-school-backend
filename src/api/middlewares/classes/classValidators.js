@@ -64,7 +64,7 @@ exports.classValidators = [
       })
     }),
   check('classType').isString().notEmpty(),
-  check('quiz').isArray(),
+  check('quizzes').isArray(),
   (req, res, next) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {

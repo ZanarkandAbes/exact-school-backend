@@ -9,7 +9,7 @@ const classesSchema = new mongoose.Schema({
   title: { type: String, min: 1, max: 100, required: [true, 'Informe o título!'] },
   videoUrl: { type: String, min: 1, required: [true, 'Informe o link do vídeo!'] },
   classType: { type: String, uppercase: true, enum: [classTypesEnum.VIDEO], required: [true, 'Informe o tipo de aula!'] },
-  quiz: { type: Array, default: [], required: false }, // quizId
+  quizzes: { type: Array, default: [], required: false }, // quizId
   createdAt: { type: Date, required: true },
   updatedAt: { type: Date, required: true }
 }, { collection: 'classes' })
