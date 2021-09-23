@@ -2,6 +2,10 @@ const jwt = require('jsonwebtoken')
 
 const userLogin = (userPermissions) => (req, res, next) => {
 
+  if (!!req.query.token) {
+    req.body.token = req.query.token
+  }
+
   try {
     const decode = jwt.verify(req.body.token, process.env.JWT_SECRET)
     req.authUser = decode
