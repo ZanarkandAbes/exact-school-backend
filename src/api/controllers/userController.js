@@ -40,8 +40,9 @@ exports.login = async function (req, res, next) {
         expiresIn: '8h'
       }
     )
+    user.password = undefined
 
-    res.send({ token: token, success: true, res: 'Autenticado com sucesso!', status: 200 })
+    res.send({ token: token, userData: user, success: true, res: 'Autenticado com sucesso!', status: 200 })
   } else {
     const error = new UnanthorizedError()
     error.httpStatusCode = 401
@@ -134,14 +135,14 @@ exports.getAll = async function (req, res, next) {
     }
   }
 
-  const users = await User.find(filters).limit(req.query.limit).skip(req.query.skip)
+  const users = await User.find(filters, { password: 0 }).limit(req.query.limit).skip(req.query.skip)
 
   res.send(users || [])
 }
 
 exports.getById = async function (req, res, next) {
 
-  const user = await User.findById(req.params.id)
+  const user = await User.findById(req.params.id, { password: 0 })
 
   if (!user) {
     const error = new NotFoundError()
@@ -156,8 +157,6 @@ exports.getById = async function (req, res, next) {
 exports.update = async function (req, res, next) {
 
   let body = req.body
-
-  body.updatedAt = new Date().toISOString()
 
   if (!(req.authUser.userType === userTypesEnum.ADMIN || req.authUser.id === req.params.id)){
     const error = new UnanthorizedError()
