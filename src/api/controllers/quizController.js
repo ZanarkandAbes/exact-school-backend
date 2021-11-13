@@ -88,23 +88,25 @@ exports.update = async function (req, res, next) {
 
 exports.delete = async function (req, res, next) {
 
-  const classToGet = await Class.findById(req.body.classId)
+  // A verificação tem que ser feita com TODAS as aulas
 
-  if (!classToGet) {
-    const error = new NotFoundError()
-    error.httpStatusCode = 404
-    res.status(error.httpStatusCode).json({ success: false, res: 'Aula não encontrada', status: error.httpStatusCode })
-    return next(error)
-  }
+  // const classToGet = await Class.findById(req.body.classId)
 
-  const quiz = await Quiz.findById(req.params.id)
+  // if (!classToGet) {
+  //   const error = new NotFoundError()
+  //   error.httpStatusCode = 404
+  //   res.status(error.httpStatusCode).json({ success: false, res: 'Aula não encontrada', status: error.httpStatusCode })
+  //   return next(error)
+  // }
 
-  if (!!(classToGet.quizzes.find(quiz => quiz._id.toString() === req.params.id)) && !!quiz) {
-    const error = new InvalidOperationError()
-    error.httpStatusCode = 400
-    res.status(error.httpStatusCode).json({ success: false, res: 'Essa pergunta pertence a uma aula', status: error.httpStatusCode })
-    return next(error)
-  }
+  // const quiz = await Quiz.findById(req.params.id)
+
+  // if (!!(classToGet.quizzes.find(quiz => quiz._id.toString() === req.params.id)) && !!quiz) {
+  //   const error = new InvalidOperationError()
+  //   error.httpStatusCode = 400
+  //   res.status(error.httpStatusCode).json({ success: false, res: 'Essa pergunta pertence a uma aula', status: error.httpStatusCode })
+  //   return next(error)
+  // }
 
   const quizDeleted = await Quiz.findByIdAndRemove(req.params.id)
 
