@@ -13,7 +13,7 @@ exports.create = async function (req, res, next) {
   let quiz = new Quiz({
     description: req.body.description,
     questionType: req.body.questionType,
-    answer: req.body.answer,
+    answerOptions: req.body.answerOptions,
     coins: req.body.coins,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -67,7 +67,7 @@ exports.update = async function (req, res, next) {
 
   body.updatedAt = new Date().toISOString()
 
-  if (!(req.authUser.userType === userTypesEnum.ADMIN || req.authUser.id === req.params.id)){
+  if (!(req.authUser.userType === userTypesEnum.ADMIN || req.authUser.id === req.body.userId)){
     const error = new UnanthorizedError()
     error.httpStatusCode = 401
     res.status(401).send({ sucess: false, res: 'Sem permissão', status: error.httpStatusCode })

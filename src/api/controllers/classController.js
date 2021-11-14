@@ -143,25 +143,25 @@ exports.delete = async function (req, res, next) {
     return next(error)
   }
 
-  if (classToGet.topicId.length !== 0) {
-    const topic = await Topic.findById(classToGet.topicId)
+  // if (classToGet.topicId.length !== 0) {
+  //   const topic = await Topic.findById(classToGet.topicId)
 
-    if (!topic) {
-      const error = new NotFoundError()
-      error.httpStatusCode = 404
-      res.status(error.httpStatusCode).json({ success: false, res: 'Tópico não encontrado', status: error.httpStatusCode })
-      return next(error)
-    }
+  //   if (!topic) {
+  //     const error = new NotFoundError()
+  //     error.httpStatusCode = 404
+  //     res.status(error.httpStatusCode).json({ success: false, res: 'Tópico não encontrado', status: error.httpStatusCode })
+  //     return next(error)
+  //   }
 
-    if (classToGet.topicId === topic._id.toString()) {
-      const error = new InvalidOperationError()
-      error.httpStatusCode = 400
-      res.status(error.httpStatusCode).json({ success: false, res: 'Essa aula está associada a um tópico', status: error.httpStatusCode })
-      return next(error)
-    }
-  }
+  //   if (classToGet.topicId === topic._id.toString()) {
+  //     const error = new InvalidOperationError()
+  //     error.httpStatusCode = 400
+  //     res.status(error.httpStatusCode).json({ success: false, res: 'Essa aula está associada a um tópico', status: error.httpStatusCode })
+  //     return next(error)
+  //   }
+  // }
 
-  if (!(req.authUser.userType === userTypesEnum.ADMIN || req.authUser.id === req.params.id)) {
+  if (!(req.authUser.userType === userTypesEnum.ADMIN || req.authUser.id === req.body.userId)) {
     const error = new UnanthorizedError()
     error.httpStatusCode = 401
     res.status(401).send({ sucess: false, res: 'Sem permissão', status: error.httpStatusCode })

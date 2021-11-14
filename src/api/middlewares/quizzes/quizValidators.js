@@ -19,7 +19,7 @@ exports.quizValidators = [
       })
     }),
   check('questionType').isString().notEmpty(),
-  check('answer').isString().notEmpty(),
+  check('answerOptions').isArray().notEmpty(),
   check('coins').isFloat().notEmpty(),
   (req, res, next) => {
     const errors = validationResult(req)
